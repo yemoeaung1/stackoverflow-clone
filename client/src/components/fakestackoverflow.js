@@ -11,7 +11,6 @@ import TagPage from "./tags_page.js";
 import { filterSearch, sortResults } from "./search_sort.js";
 
 let baseURL = "http://localhost:8000/";
-
 export default function FakeStackOverflow() {
   const [viewOption, setViewOpt] = useState("questions");
   const [pageData, setPageData] = useState([]);
@@ -41,28 +40,34 @@ export default function FakeStackOverflow() {
   const initURLHandler = async () => {
     const urlPath = window.location.pathname.toLowerCase().substring(1);
     const acceptedURLs = ["tags", "questions", "questionform"];
-  
-    if(acceptedURLs.includes(urlPath))
-      setViewOpt(urlPath);
-    else if (urlPath !== '' && urlPath !== '/'){
-      if(window.location.pathname.substring(1, 7) === "posts/"){
+
+    if (acceptedURLs.includes(urlPath)) setViewOpt(urlPath);
+    else if (urlPath !== "" && urlPath !== "/") {
+      if (window.location.pathname.substring(1, 7) === "posts/") {
         const postPath = window.location.pathname.substring(7).toLowerCase();
-       
-        if((/question\/.+?/).test(postPath) && !(/question\/.+?\/+./).test(postPath)){
-          axios.get(`http://localhost:8000${window.location.pathname}`)
+
+        if (
+          /question\/.+?/.test(postPath) &&
+          !/question\/.+?\/+./.test(postPath)
+        ) {
+          axios
+            .get(`http://localhost:8000${window.location.pathname}`)
             .then((res) => {
               // changePage("answers", [res.data]);
               setViewOpt("answers");
               setPageData(res.data);
             })
             .catch((err) => console.log(err));
-        }
-        else if((/question\/.+?\/answerform/).test(postPath) && !(/question\/.+?\/answerform\/+./).test(postPath)){
+        } else if (
+          /question\/.+?\/answerform/.test(postPath) &&
+          !/question\/.+?\/answerform\/+./.test(postPath)
+        ) {
           let count = 0;
-          for(let i = 0; i < postPath.length; i++){
-            if(count === 2){
+          for (let i = 0; i < postPath.length; i++) {
+            if (count === 2) {
               //changePage("answerform", [postPath.substring(i)]);
-              axios.get(`http://localhost:8000${window.location.pathname}`)
+              axios
+                .get(`http://localhost:8000${window.location.pathname}`)
                 .then((res) => {
                   // changePage("answers", [res.data]);
                   setViewOpt("answerform");
@@ -72,26 +77,27 @@ export default function FakeStackOverflow() {
                 .catch((err) => console.log(err));
               break;
             }
-            if(postPath[i] === '/')
-              count++;
+            if (postPath[i] === "/") count++;
           }
-        }
-        else if((/tag\/.+?/).test(postPath) && !(/tag\/.+?\/+./).test(postPath)){
-          axios.get(`http://localhost:8000${window.location.pathname}`)
+        } else if (
+          /tag\/.+?/.test(postPath) &&
+          !/tag\/.+?\/+./.test(postPath)
+        ) {
+          axios
+            .get(`http://localhost:8000${window.location.pathname}`)
             .then((res) => {
               //changePage("questions", [`Tag Results for ${res.data.tag.name}`, ...res.data.qArr]);
               setViewOpt("questions");
-              setPageData([`Tag Results for ${res.data.tag.name}`, ...res.data.qArr]);
+              setPageData([
+                `Tag Results for ${res.data.tag.name}`,
+                ...res.data.qArr,
+              ]);
             })
             .catch((err) => console.log(err));
-        }
-        else
-          window.location.pathname = '';
-      }
-      else
-        window.location.pathname = '';
+        } else window.location.pathname = "";
+      } else window.location.pathname = "";
     }
-  }
+  };
 
   useEffect(() => {
     console.log("Starting useEffect()");
@@ -124,6 +130,7 @@ export default function FakeStackOverflow() {
     // console.log(pageData);
 
     let urlPath = "";
+    //set url to fetch from question ID
     if (viewOption.toLowerCase() === "answers")
       urlPath = `/posts/question/${pageData[0]}`;
     else if (viewOption.toLowerCase() === "answerform")
@@ -146,8 +153,7 @@ export default function FakeStackOverflow() {
         .then((res) => {
           setViewOpt(viewOption);
           if (viewOption === "answers" || viewOption === "answer") {
-            pageData = res.data;
-            setPageData(pageData);
+            setPageData(res.data);
           } else {
             // console.log(`In axios:${pageData}`);
             setPageData(pageData);
@@ -240,18 +246,28 @@ function ContentView(props) {
   let option = props.option.toLowerCase();
   switch (option) {
     case "questions":
-      let title = props.pageData[0]; 
+      let title = props.pageData[0];
       let questionsArr;
-      if(title === "All Questions" || (props.pageData.length === 2 && (props.pageData[1] === "default" || props.pageData[1] === "newest"))){
+      if (
+        title === "All Questions" ||
+        (props.pageData.length === 2 &&
+          (props.pageData[1] === "default" || props.pageData[1] === "newest"))
+      ) {
         questionsArr = sortResults("newest", props.modelQuestions);
-      } else if(props.pageData.length === 2 && props.pageData[1] === "active") {
+      } else if (
+        props.pageData.length === 2 &&
+        props.pageData[1] === "active"
+      ) {
         questionsArr = sortResults("active", props.modelQuestions);
-      } else if(props.pageData.length === 2 && props.pageData[1] === "unanswered") {
+      } else if (
+        props.pageData.length === 2 &&
+        props.pageData[1] === "unanswered"
+      ) {
         questionsArr = sortResults("unanswered", props.modelQuestions);
       } else {
         [title, ...questionsArr] = props.pageData;
       }
-        //console.log(props.pageData);
+      //console.log(props.pageData);
 
       return (
         <>

@@ -5,65 +5,62 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 
 export default function AnswerPage({ pageData, handlers }) {
-  // console.log("in answer page" + pageData);
+  // console.log("in answer page" + JSON.stringify(pageData));
   // console.log(pageData);
   const [question, setQuestion] = useState(pageData);
   const [answers, setAnswers] = useState([]);
 
   useEffect(() => {
     setQuestion(pageData);
-    
   }, [pageData]);
 
-  // console.log("Question:" + question.answers);
-
-  //gonna run on first load
+  //this gets the answer texts asynchronously only once question is fetched 
   // useEffect(() => {
-  //   // console.log("Fetching question");
-  //   const fetchData = async () => {
-  //     try {
-  //       const fetchedQuestion = await axios.get(
-  //         `http://localhost:8000/posts/question/${pageData[0]}`
-  //       );
-  //       // console.log(fetchedQuestion);
-  //       setQuestion(fetchedQuestion.data);
-  //     } catch (err) {
-  //       console.log(err);
-  //     } // console.log(question.answers);
-  //   };
-  //   fetchData();
-  //   // console.log("finished fetching qeustion");
-  // }, [question]);
+  //   const fetchAnswers = async (answers) => {
+  //     console.log("begin fetching answers");
+  //     for(let answerID of answers) {
+  //       axios.get(`http://localhost:8000/posts/answer/${answerID}`)
+  //       .then((response) => {
+  //         console.log(response.data);
+  //         setAnswers((prev) => [...prev,response.data])
+  //       })
+  //       .catch((err) => console.log("Error fetching answers: " + err))
+  //     }
+  //   }
+  //   if (question && question.answers) {
+  //     fetchAnswers(question.answers);
+  //   }
+  //   console.log("finished fetching answers");
+  // },[question]);
 
-  //gonna run everytime question object changes
-  useEffect(() => {
-    const fetchAnswer = async (answers) => {
-      console.log("Fetching answers");
-      for (let answerID of answers) {
+  useEffect(()=> {
+    const fetchAnswers = async (answers) => {
+      console.log("begin fetching answers");
+      for(let answerID of answers) {
         try {
-          const response = await axios.get(
-            `http://localhost:8000/posts/answer/${answerID}`
-          );
-          // console.log(response.data.text);
-          
-          setAnswers((prev) => [...prev, response.data]);
-        } catch (err) {
-          console.log(err);
+          const response = await (await axios.get(`http://localhost:8000/posts/answer/${answerID}`))
+          let answer = response.data
+          setAnswers((prevAnswers) => [...prevAnswers, answer])
+        } catch (error) {
+          console.log("Error fetching answers:" + error)
         }
       }
-    };
+    }
     if (question && question.answers) {
-      fetchAnswer(question.answers);
+      fetchAnswers(question.answers);
     }
     console.log("finished fetching answers");
-  }, [question]);
+  },[question]);
 
-  const handleAskButtonClick = () => {
+  // console.log("Answers: " + JSON.stringify(answers));
+
+  //sends you to answer form 
+  const handleAnswerButtonClick = () => {
     handlers[0]("answerform", [question]);
   };
 
   let ask_date_time_string = getLocaleString(question.ask_date_time);
-  const sorted_answers = sortResults("sortanswer", answers);
+  let sorted_answers = sortResults("sortanswer", answers);
 
   // console.log(JSON.stringify(answers));
   return (
@@ -105,7 +102,7 @@ export default function AnswerPage({ pageData, handlers }) {
       })}
       <button
         id="answer-button"
-        onClick={handleAskButtonClick}
+        onClick={handleAnswerButtonClick}
         sid="answer-button"
       >
         Answer Question
@@ -123,7 +120,7 @@ function Answer({ answer }) {
     <div className="answer-container">
       <div className="answer-text">
         {" "}
-        {answer.text  && constructTextWithHyperlink(answer.text)}
+        {answer.text && constructTextWithHyperlink(answer.text)}
       </div>
       <div className="ans-user-and-date">
         <p>
